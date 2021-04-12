@@ -1,35 +1,55 @@
 import { Component, OnInit } from '@angular/core';
 import { Course } from './course';
+import { CourseService } from './courses.service';
 
 @Component({
-  selector: 'app-course-list',
   templateUrl: './course-list.component.html',
 })
 export class CourseListComponent implements OnInit {
-  courses: Course[] = [];
+  _courses: Course[] = [];
+
+  filteredCourses: Course[] = [];
+
+  _filterBy: string;
+
+  constructor(private courseService: CourseService) {}
 
   ngOnInit(): void {
-    this.courses = [
-      {
-        id: 1,
-        name: 'Angular: Forms',
-        imageUrl: 'string',
-        price: 99.99,
-        code: 'XPS-8796',
-        duration: 120,
-        rating: 4,
-        releaseDate: 'November, 2, 2019'
+    this.retrieveAll();
+  }
+
+  retrieveAll(): void {
+    this.courseService.retrieveAll().subscribe({
+      next: (courses) => {
+        this._courses = courses;
+        this.filteredCourses = this._courses;
       },
-      {
-        id: 2,
-        name: 'Angular: HTTP',
-        imageUrl: 'string',
-        price: 45.99,
-        code: 'LKL-1094',
-        duration: 80,
-        rating: 4.5,
-        releaseDate: 'December, 4, 2019'
-      }
-    ];
+      error: (err) => console.log(err),
+    });
+  }
+
+  deleteById(courseId: number): void {
+    this.courseService.deleteById(courseId).subscribe({
+      next: () => {
+        console.log('Deleted with success');
+        this.retrieveAll();
+      },
+      error: (err) => console.log(err),
+    });
+  }
+
+  set filter(value: string) {
+    this._filterBy = value;
+
+    this.filteredCourses = this._courses.filter(
+      (course: Course) =>
+        course.name
+          .toLocaleLowerCase()
+          .indexOf(this._filterBy.toLocaleLowerCase()) > -1
+    );
+  }
+
+  get filter() {
+    return this._filterBy;
   }
 }
